@@ -7,28 +7,33 @@ import ReviewForm from './components/ReviewForm';
 import SalesBanner from './components/SalesBanner';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import Footer from './components/Footer';
-import AdminModal from './components/AdminModal';
+import AdminPage from './components/AdminPage';
 import { supabase, isSupabaseConfigured, getLocalReviews, saveLocalReview } from './lib/supabase';
-import { ShieldCheck, ShieldAlert, X } from 'lucide-react';
 
 export default function App() {
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [newlyAddedId, setNewlyAddedId] = useState(null);
 
-  // Admin State
-  const [isAdmin, setIsAdmin] = useState(() => {
-    try {
-      return sessionStorage.getItem('ev_is_admin') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-
   const storiesWallRef = useRef(null);
+
+  // Listen to browser path changes
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 1. Initial Data Fetch (Supabase or Local Genuine Reviews)
   useEffect(() => {
@@ -100,7 +105,7 @@ export default function App() {
 
   // 3. Handle Review Submission with Instant Zero-Delay Display
   const handleReviewSubmitted = async (newStory) => {
-    // A. Instant Optimistic UI Update (Immediate visual feedback with zero delay)
+    // Instant Optimistic UI Update
     setStories((prev) => {
       if (prev.some((s) => s.id === newStory.id)) return prev;
       return [newStory, ...prev];
@@ -110,7 +115,7 @@ export default function App() {
     // Save to local storage for persistent zero-setup offline fallback
     saveLocalReview(newStory);
 
-    // B. Insert into Supabase if configured (persisting same UUID & location)
+    // Insert into Supabase if configured
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase.from('student_reviews').insert([
@@ -153,12 +158,12 @@ export default function App() {
     }, 8000);
   };
 
-  // 4. Handle Review Deletion (Admin Panel only - No approval delay on submissions)
+  // 4. Handle Review Deletion (Admin Route only - No approval delay on submissions)
   const handleDeleteReview = async (id) => {
-    // A. Optimistic UI update
+    // Optimistic UI update
     setStories((prev) => prev.filter((s) => s.id !== id));
 
-    // B. Remove from localStorage
+    // Remove from localStorage
     try {
       const STORAGE_KEY = 'ev_cyber_academy_genuine_reviews_v2';
       const existing = getLocalReviews();
@@ -168,7 +173,7 @@ export default function App() {
       console.warn('LocalStorage delete error:', e);
     }
 
-    // C. Remove from Supabase
+    // Remove from Supabase
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase
@@ -183,20 +188,6 @@ export default function App() {
         console.error('Supabase delete exception:', err);
       }
     }
-  };
-
-  const handleAdminLogin = () => {
-    setIsAdmin(true);
-    try {
-      sessionStorage.setItem('ev_is_admin', 'true');
-    } catch {}
-  };
-
-  const handleAdminLogout = () => {
-    setIsAdmin(false);
-    try {
-      sessionStorage.removeItem('ev_is_admin');
-    } catch {}
   };
 
   // 5. Calculate Dynamic Stats & Category Counts
@@ -234,7 +225,6 @@ export default function App() {
   // 6. Filter & Search Logic
   const filteredStories = useMemo(() => {
     return stories.filter((story) => {
-      // Category Tab Filter
       let matchesCategory = true;
       if (activeFilter === 'LFHP') matchesCategory = story.program === 'LFHP';
       else if (activeFilter === 'EHF') matchesCategory = story.program === 'EHF';
@@ -243,7 +233,6 @@ export default function App() {
       else if (activeFilter === 'other')
         matchesCategory = !['LFHP', 'EHF', '2-Day Live Workshop'].includes(story.program);
 
-      // Search Query Filter
       let matchesSearch = true;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -272,32 +261,24 @@ export default function App() {
 
   const hasActiveFilters = activeFilter !== 'all' || searchQuery.trim().length > 0;
 
+  // ROUTE: /admin -> Render dedicated Admin Page
+  if (currentPath === '/admin' || currentPath === '/admin/') {
+    return (
+      <AdminPage
+        stories={stories}
+        onDeleteReview={handleDeleteReview}
+        onNavigateHome={() => navigateTo('/')}
+      />
+    );
+  }
+
+  // ROUTE: / -> 100% Clean Public Student Portal (Zero Admin UI Elements)
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Admin Mode Top Banner */}
-      {isAdmin && (
-        <div className="bg-emerald-950 border-b border-emerald-500/40 px-4 py-2 text-xs font-mono text-emerald-300 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>
-              <strong>ADMIN MODE ACTIVE:</strong> You can delete any review instantly. (Learner reviews remain 100% instant live without approval delay).
-            </span>
-          </div>
-          <button
-            onClick={() => setIsAdminModalOpen(true)}
-            className="px-2.5 py-1 rounded bg-emerald-800/80 hover:bg-emerald-700 text-white font-semibold transition-colors cursor-pointer"
-          >
-            Manage Reviews Panel
-          </button>
-        </div>
-      )}
-
-      {/* 1. Header Navigation */}
+      {/* 1. Header Navigation (100% Clean Public) */}
       <Navbar 
         totalStories={totalStories} 
         onShareClick={scrollToForm} 
-        isAdmin={isAdmin}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -326,8 +307,6 @@ export default function App() {
           newlyAddedId={newlyAddedId}
           onShareClick={scrollToForm}
           hasActiveFilters={hasActiveFilters}
-          isAdmin={isAdmin}
-          onDeleteReview={handleDeleteReview}
         />
 
         {/* 5. "Share Your Experience" Form */}
@@ -340,23 +319,8 @@ export default function App() {
       {/* 7. Sticky / Floating WhatsApp Widget */}
       <FloatingWhatsApp />
 
-      {/* 8. Modern Footer */}
-      <Footer 
-        onScrollTop={scrollToTop} 
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
-        isAdmin={isAdmin}
-      />
-
-      {/* 9. Admin Management Modal */}
-      <AdminModal
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-        isAdmin={isAdmin}
-        onLogin={handleAdminLogin}
-        onLogout={handleAdminLogout}
-        stories={stories}
-        onDeleteReview={handleDeleteReview}
-      />
+      {/* 8. Modern Footer (100% Clean Public) */}
+      <Footer onScrollTop={scrollToTop} />
     </div>
   );
 }

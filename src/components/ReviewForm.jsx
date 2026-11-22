@@ -105,8 +105,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
 
     setIsSubmitting(true);
 
-    const chosenProgram = formData.program === 'Other' 
-      ? formData.customProgram.trim() 
+    const chosenProgram = formData.program === 'Other'
+      ? formData.customProgram.trim()
       : formData.program;
 
     const newStory = {
@@ -134,7 +134,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
           origin: { y: 0.6 },
           colors: ['#3B82F6', '#10B981', '#06B6D4', '#F59E0B']
         });
-      } catch (_) {}
+      } catch (_) { }
 
       // Reset form
       setFormData({
@@ -165,7 +165,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
   return (
     <section id="review-form-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 scroll-mt-24">
       <div className="relative rounded-3xl bg-slate-900/90 border border-blue-500/30 p-6 sm:p-10 backdrop-blur-xl shadow-[0_0_50px_-10px_rgba(59,130,246,0.2)]">
-        
+
         {/* Glow ambient background element */}
         <div className="absolute -top-10 -right-10 w-60 h-60 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -197,7 +197,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* 1. Full Name */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -209,9 +209,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
                 placeholder="e.g. Vigneshwaran R"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
-                  errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
-                } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
+                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
+                  } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
               />
               {errors.fullName && (
                 <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -231,9 +230,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
                 placeholder="e.g. 3rd Year IT / St. Joseph's"
                 value={formData.collegeOrRole}
                 onChange={(e) => setFormData({ ...formData, collegeOrRole: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
-                  errors.collegeOrRole ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
-                } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
+                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${errors.collegeOrRole ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
+                  } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
               />
               {errors.collegeOrRole && (
                 <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -253,9 +251,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
                 placeholder="e.g. Chennai / Coimbatore"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
-                  errors.location ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-emerald-500'
-                } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
+                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${errors.location ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-emerald-500'
+                  } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
               />
               {errors.location && (
                 <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -294,9 +291,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
                   placeholder="e.g. Bug Bounty Masterclass / SOC Bootcamp"
                   value={formData.customProgram}
                   onChange={(e) => setFormData({ ...formData, customProgram: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
-                    errors.customProgram ? 'border-red-500' : 'border-emerald-500/60 focus:border-emerald-400'
-                  } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
+                  className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${errors.customProgram ? 'border-red-500' : 'border-emerald-500/60 focus:border-emerald-400'
+                    } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
                 />
                 {errors.customProgram && (
                   <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
@@ -333,11 +329,10 @@ export default function ReviewForm({ onReviewSubmitted }) {
                       className="p-1 transition-transform hover:scale-125 focus:outline-none"
                     >
                       <Star
-                        className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${
-                          isFilled
+                        className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${isFilled
                             ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
                             : 'text-slate-700 hover:text-slate-500'
-                        }`}
+                          }`}
                       />
                     </button>
                   );
@@ -369,9 +364,8 @@ export default function ReviewForm({ onReviewSubmitted }) {
               placeholder="Tell other students what you learned, how the mentors guided you, hands-on lab experience, and how it helped your career or skills..."
               value={formData.reviewText}
               onChange={(e) => setFormData({ ...formData, reviewText: e.target.value })}
-              className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
-                errors.reviewText ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
-              } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all leading-relaxed`}
+              className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${errors.reviewText ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-blue-500'
+                } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all leading-relaxed`}
             />
             {errors.reviewText && (
               <p className="mt-1 text-xs text-red-400 flex items-center gap-1">

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, Sparkles, MessageCircle, PenLine, Lock, Unlock } from 'lucide-react';
+import { Shield, Sparkles, MessageCircle, PenLine } from 'lucide-react';
 
-export default function Navbar({ totalStories, onShareClick, isAdmin, onOpenAdmin }) {
+export default function Navbar({ totalStories, onShareClick }) {
   const whatsappUrl = "https://wa.me/919789459354?text=Hi%20EV%20Cyber%20Academy%2C%20I%20saw%20the%20student%20reviews%20and%20want%20to%20know%20more%20about%20the%20courses";
 
   return (
@@ -38,7 +38,7 @@ export default function Navbar({ totalStories, onShareClick, isAdmin, onOpenAdmi
 
           <button
             onClick={onShareClick}
-            className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 border border-blue-400/30 transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/20 border border-blue-400/30 transition-all active:scale-95 cursor-pointer"
           >
             <PenLine className="w-4 h-4" />
             <span>Share Story</span>
@@ -48,24 +48,11 @@ export default function Navbar({ totalStories, onShareClick, isAdmin, onOpenAdmi
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 transition-all active:scale-95"
           >
             <MessageCircle className="w-4 h-4 text-emerald-400" />
-            <span>WhatsApp</span>
+            <span className="hidden sm:inline">WhatsApp</span>
           </a>
-
-          {/* Admin Mode Trigger */}
-          <button
-            onClick={onOpenAdmin}
-            title={isAdmin ? "Admin Controls (Delete Reviews)" : "Admin Access"}
-            className={`p-2 rounded-lg text-xs border transition-all cursor-pointer ${
-              isAdmin
-                ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-          >
-            {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-          </button>
         </div>
       </div>
     </header>

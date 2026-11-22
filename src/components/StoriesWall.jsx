@@ -6,9 +6,7 @@ export default function StoriesWall({
   stories, 
   newlyAddedId, 
   onShareClick, 
-  hasActiveFilters, 
-  isAdmin, 
-  onDeleteReview 
+  hasActiveFilters 
 }) {
   if (stories.length === 0) {
     return (
@@ -62,8 +60,6 @@ export default function StoriesWall({
             key={story.id}
             story={story}
             isNewlyAdded={newlyAddedId === story.id}
-            isAdmin={isAdmin}
-            onDelete={onDeleteReview}
           />
         ))}
       </div>

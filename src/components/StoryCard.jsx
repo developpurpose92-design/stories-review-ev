@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, ShieldCheck, ExternalLink, Calendar, MapPin, Trash2 } from 'lucide-react';
+import { Star, ShieldCheck, ExternalLink, Calendar, MapPin } from 'lucide-react';
 
 function GithubIcon({ className = "w-4 h-4" }) {
   return (
@@ -9,11 +9,9 @@ function GithubIcon({ className = "w-4 h-4" }) {
   );
 }
 
-export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
+export default function StoryCard({ story, isNewlyAdded }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Formatting date
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Recent';
     try {
@@ -33,7 +31,6 @@ export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
     }
   };
 
-  // Program badge colors
   const getProgramBadge = (program) => {
     switch (program) {
       case 'LFHP':
@@ -47,7 +44,6 @@ export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
     }
   };
 
-  // Student Initials
   const getInitials = (name) => {
     if (!name) return 'EV';
     return name
@@ -56,14 +52,6 @@ export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
       .join('')
       .substring(0, 2)
       .toUpperCase();
-  };
-
-  const handleDeleteClick = async () => {
-    if (window.confirm(`Delete review from "${story.full_name}" permanently?`)) {
-      setIsDeleting(true);
-      await onDelete(story.id);
-      setIsDeleting(false);
-    }
   };
 
   const isLongText = story.review_text && story.review_text.length > 240;
@@ -99,25 +87,10 @@ export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Verified EV Learner Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="text-[11px] font-semibold whitespace-nowrap">✓ Verified EV Learner</span>
-            </div>
-
-            {/* Admin Delete Action Button */}
-            {isAdmin && (
-              <button
-                onClick={handleDeleteClick}
-                disabled={isDeleting}
-                title="Admin Delete"
-                className="p-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white transition-all text-xs flex items-center gap-1 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                <span className="text-[10px] font-bold uppercase hidden sm:inline">Delete</span>
-              </button>
-            )}
+          {/* Verified EV Learner Badge */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[11px] font-semibold whitespace-nowrap">✓ Verified EV Learner</span>
           </div>
         </div>
 
@@ -178,7 +151,7 @@ export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
           </div>
         </div>
 
-        {/* Social Proof Links (Optional GitHub / Portfolio) */}
+        {/* Social Proof Links */}
         <div className="flex items-center gap-1.5 shrink-0">
           {story.github_url && (
             <a

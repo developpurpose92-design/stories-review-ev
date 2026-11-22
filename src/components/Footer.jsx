@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, MessageCircle, ArrowUp, Lock } from 'lucide-react';
+import { Shield, MessageCircle, ArrowUp } from 'lucide-react';
 
-export default function Footer({ onScrollTop, onOpenAdmin, isAdmin }) {
+export default function Footer({ onScrollTop }) {
   const whatsappUrl = "https://wa.me/919789459354?text=Hi%20EV%20Cyber%20Academy%2C%20I%20saw%20the%20student%20reviews%20and%20want%20to%20know%20more%20about%20the%20courses";
 
   return (
@@ -41,13 +41,6 @@ export default function Footer({ onScrollTop, onOpenAdmin, isAdmin }) {
               <MessageCircle className="w-3.5 h-3.5" />
               WhatsApp Helpdesk
             </a>
-            <button
-              onClick={onOpenAdmin}
-              className="text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              <Lock className="w-3 h-3" />
-              <span>{isAdmin ? 'Admin Panel (Active)' : 'Admin Login'}</span>
-            </button>
             <button
               onClick={onScrollTop}
               className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors flex items-center gap-1 text-xs cursor-pointer"
