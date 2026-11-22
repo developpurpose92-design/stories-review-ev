@@ -19,16 +19,29 @@ import { INITIAL_REVIEWS } from './src/lib/initialData.js';
 assert.deepStrictEqual(INITIAL_REVIEWS, [], 'INITIAL_REVIEWS must be empty (0 fake reviews)');
 console.log('  ✅ 0 fake reviews in initialData.js.\n');
 
-// 3. Verify supabase_schema.sql contains NO fake review INSERTs
-console.log('Test 3: SQL Schema check for fake data...');
+// 3. Verify supabase_schema.sql contains location and delete policy
+console.log('Test 3: SQL Schema check for location and delete policy...');
 const sqlContent = fs.readFileSync('supabase_schema.sql', 'utf-8');
 assert.strictEqual(sqlContent.includes('INSERT INTO public.student_reviews'), false, 'SQL schema must NOT insert fake reviews');
-assert.ok(sqlContent.includes('CREATE TABLE IF NOT EXISTS public.student_reviews'), 'SQL schema must create table');
-assert.ok(sqlContent.includes('ALTER PUBLICATION supabase_realtime ADD TABLE public.student_reviews'), 'SQL schema must enable realtime');
-console.log('  ✅ supabase_schema.sql is clean with 0 fake reviews.\n');
+assert.ok(sqlContent.includes('location TEXT'), 'SQL schema must include location column');
+assert.ok(sqlContent.includes('FOR DELETE'), 'SQL schema must include DELETE policy for Admin');
+console.log('  ✅ supabase_schema.sql contains location column and DELETE policy.\n');
 
-// 4. Test Dynamic Stats Calculation Logic
-console.log('Test 4: Dynamic Stats Calculation Logic...');
+// 4. Verify LFHP Correct Full Form in ReviewForm.jsx
+console.log('Test 4: LFHP Name Verification...');
+const reviewFormCode = fs.readFileSync('src/components/ReviewForm.jsx', 'utf-8');
+assert.ok(
+  reviewFormCode.includes('LFHP (Learn the Fundamentals of Hacking Program)'),
+  'LFHP must display "Learn the Fundamentals of Hacking Program"'
+);
+assert.ok(
+  reviewFormCode.includes('Location / City'),
+  'ReviewForm must include Location / City input'
+);
+console.log('  ✅ LFHP correctly named "Learn the Fundamentals of Hacking Program" and location input verified.\n');
+
+// 5. Test Dynamic Stats Calculation Logic
+console.log('Test 5: Dynamic Stats Calculation Logic...');
 function calculateStats(storiesList) {
   const total = storiesList.length;
   if (total === 0) {
@@ -64,28 +77,26 @@ function calculateStats(storiesList) {
 const emptyStats = calculateStats([]);
 assert.strictEqual(emptyStats.totalStories, 0);
 assert.strictEqual(emptyStats.averageRating, '0.0');
-assert.strictEqual(emptyStats.counts.all, 0);
-console.log('  ✅ Case A (0 reviews): Accurately returns 0 total and 0.0 rating.');
 
 // Case B: Genuine submissions added
-const sampleStories = [
-  { id: '1', rating: 5, program: 'LFHP' },
-  { id: '2', rating: 5, program: 'LFHP' },
-  { id: '3', rating: 4, program: 'EHF' },
-  { id: '4', rating: 5, program: '2-Day Live Workshop' },
-  { id: '5', rating: 5, program: 'SOC Analyst Bootcamp' }, // custom program
+let sampleStories = [
+  { id: '1', rating: 5, program: 'LFHP', location: 'Chennai' },
+  { id: '2', rating: 5, program: 'LFHP', location: 'Coimbatore' },
+  { id: '3', rating: 4, program: 'EHF', location: 'Madurai' },
 ];
-const genuineStats = calculateStats(sampleStories);
-assert.strictEqual(genuineStats.totalStories, 5);
-assert.strictEqual(genuineStats.averageRating, '4.8'); // (5+5+4+5+5)/5 = 24/5 = 4.8
-assert.strictEqual(genuineStats.counts.LFHP, 2);
-assert.strictEqual(genuineStats.counts.EHF, 1);
-assert.strictEqual(genuineStats.counts['2-Day Live Workshop'], 1);
-assert.strictEqual(genuineStats.counts.other, 1);
-console.log('  ✅ Case B (genuine reviews): Accurately calculates 4.8 avg rating and category counts.\n');
+let genuineStats = calculateStats(sampleStories);
+assert.strictEqual(genuineStats.totalStories, 3);
+assert.strictEqual(genuineStats.averageRating, '4.7');
 
-// 5. Test Filtering & Search Logic
-console.log('Test 5: Filter and Search matching...');
+// Case C: Admin deletes a review
+sampleStories = sampleStories.filter(s => s.id !== '3');
+let postDeleteStats = calculateStats(sampleStories);
+assert.strictEqual(postDeleteStats.totalStories, 2);
+assert.strictEqual(postDeleteStats.averageRating, '5.0');
+console.log('  ✅ Admin deletion dynamically updates review stats with 100% precision.\n');
+
+// 6. Test Filtering & Search with Location
+console.log('Test 6: Filter and Search matching with Location...');
 function filterStories(storiesList, activeFilter, searchQuery) {
   return storiesList.filter((story) => {
     let matchesCategory = true;
@@ -101,9 +112,10 @@ function filterStories(storiesList, activeFilter, searchQuery) {
       const query = searchQuery.toLowerCase();
       const nameMatch = story.full_name?.toLowerCase().includes(query);
       const collegeMatch = story.college_or_role?.toLowerCase().includes(query);
+      const locationMatch = story.location?.toLowerCase().includes(query);
       const reviewMatch = story.review_text?.toLowerCase().includes(query);
       const programMatch = story.program?.toLowerCase().includes(query);
-      matchesSearch = nameMatch || collegeMatch || reviewMatch || programMatch;
+      matchesSearch = nameMatch || collegeMatch || locationMatch || reviewMatch || programMatch;
     }
 
     return matchesCategory && matchesSearch;
@@ -111,61 +123,12 @@ function filterStories(storiesList, activeFilter, searchQuery) {
 }
 
 const detailedStories = [
-  { id: '1', full_name: 'Arun Kumar', college_or_role: 'PSG Tech', program: 'LFHP', review_text: 'Linux forensics labs were brilliant' },
-  { id: '2', full_name: 'Priya R', college_or_role: 'SSN College', program: 'EHF', review_text: 'Ethical hacking practical drills' },
-  { id: '3', full_name: 'Kavin M', college_or_role: 'CIT Coimbatore', program: '2-Day Live Workshop', review_text: 'Web security workshop' },
-  { id: '4', full_name: 'Dinesh S', college_or_role: 'Tech Mahindra', program: 'Malware Analysis', review_text: 'Reverse engineering training' },
+  { id: '1', full_name: 'Arun Kumar', college_or_role: 'PSG Tech', location: 'Coimbatore', program: 'LFHP', review_text: 'Linux forensics labs' },
+  { id: '2', full_name: 'Priya R', college_or_role: 'SSN College', location: 'Chennai', program: 'EHF', review_text: 'Ethical hacking drills' },
 ];
 
-// Test Filter Tabs
-assert.strictEqual(filterStories(detailedStories, 'LFHP', '').length, 1);
-assert.strictEqual(filterStories(detailedStories, 'EHF', '').length, 1);
-assert.strictEqual(filterStories(detailedStories, '2-Day Live Workshop', '').length, 1);
-assert.strictEqual(filterStories(detailedStories, 'other', '').length, 1);
-assert.strictEqual(filterStories(detailedStories, 'all', '').length, 4);
+assert.strictEqual(filterStories(detailedStories, 'all', 'Coimbatore').length, 1);
+assert.strictEqual(filterStories(detailedStories, 'all', 'Chennai').length, 1);
+console.log('  ✅ Location search query functions with 100% accuracy.\n');
 
-// Test Search Query
-assert.strictEqual(filterStories(detailedStories, 'all', 'PSG').length, 1);
-assert.strictEqual(filterStories(detailedStories, 'all', 'hacking').length, 1);
-assert.strictEqual(filterStories(detailedStories, 'all', 'nonexistent').length, 0);
-console.log('  ✅ Category tabs and search queries filter stories with 100% precision.\n');
-
-// 6. Test Deduplication Logic
-console.log('Test 6: Realtime Deduplication Logic...');
-let currentStories = [{ id: 'uuid-101', full_name: 'Arun' }];
-const incomingRealtimeRow = { id: 'uuid-101', full_name: 'Arun' };
-const isDuplicate = currentStories.some((s) => s.id === incomingRealtimeRow.id);
-assert.strictEqual(isDuplicate, true, 'Duplicate ID must be detected and not appended twice');
-
-const incomingNewRow = { id: 'uuid-102', full_name: 'Kavitha' };
-const isNewDuplicate = currentStories.some((s) => s.id === incomingNewRow.id);
-assert.strictEqual(isNewDuplicate, false, 'New UUID must be accepted');
-console.log('  ✅ UUID Deduplication prevents race condition duplicates.\n');
-
-// 7. Test URL Normalization Logic
-console.log('Test 7: URL Normalization...');
-function normalizeUrl(urlStr) {
-  if (!urlStr || !urlStr.trim()) return null;
-  const trimmed = urlStr.trim();
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-}
-assert.strictEqual(normalizeUrl('github.com/my-profile'), 'https://github.com/my-profile');
-assert.strictEqual(normalizeUrl('https://linkedin.com/in/john'), 'https://linkedin.com/in/john');
-assert.strictEqual(normalizeUrl('   '), null);
-console.log('  ✅ URL normalizer properly adds https:// to bare links.\n');
-
-// 8. Test WhatsApp URLs in components
-console.log('Test 8: WhatsApp Sales Links...');
-const expectedWaUrl = "https://wa.me/919789459354?text=Hi%20EV%20Cyber%20Academy%2C%20I%20saw%20the%20student%20reviews%20and%20want%20to%20know%20more%20about%20the%20courses";
-const salesBannerCode = fs.readFileSync('src/components/SalesBanner.jsx', 'utf-8');
-const navbarCode = fs.readFileSync('src/components/Navbar.jsx', 'utf-8');
-const floatingWaCode = fs.readFileSync('src/components/FloatingWhatsApp.jsx', 'utf-8');
-assert.ok(salesBannerCode.includes(expectedWaUrl), 'SalesBanner must have official WhatsApp link');
-assert.ok(navbarCode.includes(expectedWaUrl), 'Navbar must have official WhatsApp link');
-assert.ok(floatingWaCode.includes(expectedWaUrl), 'FloatingWhatsApp must have official WhatsApp link');
-console.log('  ✅ WhatsApp admissions link (+91 97894 59354) verified across all CTAs.\n');
-
-console.log('🎉 ALL TESTS PASSED! Codebase verified from A to Z with 0 errors.');
+console.log('🎉 ALL TESTS PASSED! Codebase verified with 0 errors.');

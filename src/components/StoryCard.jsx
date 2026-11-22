@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, ShieldCheck, ExternalLink, Calendar, Award } from 'lucide-react';
+import { Star, ShieldCheck, ExternalLink, Calendar, MapPin, Trash2 } from 'lucide-react';
 
 function GithubIcon({ className = "w-4 h-4" }) {
   return (
@@ -9,8 +9,9 @@ function GithubIcon({ className = "w-4 h-4" }) {
   );
 }
 
-export default function StoryCard({ story, isNewlyAdded }) {
+export default function StoryCard({ story, isNewlyAdded, isAdmin, onDelete }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Formatting date
   const formatDate = (dateStr) => {
@@ -57,6 +58,14 @@ export default function StoryCard({ story, isNewlyAdded }) {
       .toUpperCase();
   };
 
+  const handleDeleteClick = async () => {
+    if (window.confirm(`Delete review from "${story.full_name}" permanently?`)) {
+      setIsDeleting(true);
+      await onDelete(story.id);
+      setIsDeleting(false);
+    }
+  };
+
   const isLongText = story.review_text && story.review_text.length > 240;
   const displayText = isLongText && !isExpanded
     ? `${story.review_text.substring(0, 240)}...`
@@ -78,6 +87,7 @@ export default function StoryCard({ story, isNewlyAdded }) {
               className={`px-3 py-1 rounded-full text-xs font-semibold font-mono tracking-wider border ${getProgramBadge(
                 story.program
               )}`}
+              title={story.program === 'LFHP' ? 'LFHP - Learn the Fundamentals of Hacking Program' : story.program}
             >
               {story.program}
             </span>
@@ -89,10 +99,25 @@ export default function StoryCard({ story, isNewlyAdded }) {
             )}
           </div>
 
-          {/* Verified EV Learner Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span className="text-[11px] font-semibold whitespace-nowrap">✓ Verified EV Learner</span>
+          <div className="flex items-center gap-2">
+            {/* Verified EV Learner Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="text-[11px] font-semibold whitespace-nowrap">✓ Verified EV Learner</span>
+            </div>
+
+            {/* Admin Delete Action Button */}
+            {isAdmin && (
+              <button
+                onClick={handleDeleteClick}
+                disabled={isDeleting}
+                title="Admin Delete"
+                className="p-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white transition-all text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span className="text-[10px] font-bold uppercase hidden sm:inline">Delete</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -121,7 +146,7 @@ export default function StoryCard({ story, isNewlyAdded }) {
         {isLongText && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 mb-4 inline-block underline underline-offset-4"
+            className="text-xs font-semibold text-blue-400 hover:text-blue-300 mb-4 inline-block underline underline-offset-4 cursor-pointer"
           >
             {isExpanded ? 'Show less' : 'Read full story →'}
           </button>
@@ -130,7 +155,7 @@ export default function StoryCard({ story, isNewlyAdded }) {
 
       {/* Footer: Student Profile & Social Proof Links */}
       <div className="pt-4 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-3">
-        {/* Student Identity */}
+        {/* Student Identity & Location */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 p-[1.5px] shrink-0">
             <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center text-xs font-mono font-bold text-blue-300">
@@ -141,9 +166,15 @@ export default function StoryCard({ story, isNewlyAdded }) {
             <h4 className="text-sm font-semibold text-white truncate">
               {story.full_name}
             </h4>
-            <p className="text-xs text-slate-400 truncate">
-              {story.college_or_role}
-            </p>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400">
+              <span className="truncate">{story.college_or_role}</span>
+              {story.location && (
+                <span className="inline-flex items-center gap-0.5 text-[11px] text-emerald-400 font-mono bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  <MapPin className="w-3 h-3 text-emerald-400" />
+                  {story.location}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

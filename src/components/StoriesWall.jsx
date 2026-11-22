@@ -2,7 +2,14 @@ import React from 'react';
 import StoryCard from './StoryCard';
 import { ShieldCheck, MessageSquarePlus, PenLine } from 'lucide-react';
 
-export default function StoriesWall({ stories, newlyAddedId, onShareClick, hasActiveFilters }) {
+export default function StoriesWall({ 
+  stories, 
+  newlyAddedId, 
+  onShareClick, 
+  hasActiveFilters, 
+  isAdmin, 
+  onDeleteReview 
+}) {
   if (stories.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
@@ -23,7 +30,7 @@ export default function StoriesWall({ stories, newlyAddedId, onShareClick, hasAc
 
           <button
             onClick={onShareClick}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-blue-400/30 transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-blue-400/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             <PenLine className="w-4 h-4" />
             <span>Share Your Real Story</span>
@@ -55,6 +62,8 @@ export default function StoriesWall({ stories, newlyAddedId, onShareClick, hasAc
             key={story.id}
             story={story}
             isNewlyAdded={newlyAddedId === story.id}
+            isAdmin={isAdmin}
+            onDelete={onDeleteReview}
           />
         ))}
       </div>

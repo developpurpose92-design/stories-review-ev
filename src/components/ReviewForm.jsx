@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Send, ShieldCheck, CheckCircle2, AlertCircle, Link, User, School, BookOpen } from 'lucide-react';
+import { Star, Send, ShieldCheck, CheckCircle2, AlertCircle, Link, User, School, BookOpen, MapPin } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 function GithubIcon({ className = "w-3.5 h-3.5" }) {
@@ -10,7 +10,6 @@ function GithubIcon({ className = "w-3.5 h-3.5" }) {
   );
 }
 
-// Generates a valid UUIDv4 for PostgreSQL & React reconciliation
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -22,7 +21,6 @@ const generateUUID = () => {
   });
 };
 
-// Normalize URL to always include protocol
 const normalizeUrl = (urlStr) => {
   if (!urlStr || !urlStr.trim()) return null;
   const trimmed = urlStr.trim();
@@ -36,6 +34,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
   const [formData, setFormData] = useState({
     fullName: '',
     collegeOrRole: '',
+    location: '',
     program: 'LFHP',
     customProgram: '',
     rating: 5,
@@ -67,6 +66,10 @@ export default function ReviewForm({ onReviewSubmitted }) {
 
     if (!formData.collegeOrRole.trim()) {
       errs.collegeOrRole = 'College / Current Role is required (e.g. 3rd Year IT / St. Josephs)';
+    }
+
+    if (!formData.location.trim()) {
+      errs.location = 'Location / City is required (e.g. Chennai, Coimbatore, Madurai)';
     }
 
     if (formData.program === 'Other' && !formData.customProgram.trim()) {
@@ -106,11 +109,11 @@ export default function ReviewForm({ onReviewSubmitted }) {
       ? formData.customProgram.trim() 
       : formData.program;
 
-    // Use a clean UUID so optimistic state and Supabase row match perfectly
     const newStory = {
       id: generateUUID(),
       full_name: formData.fullName.trim(),
       college_or_role: formData.collegeOrRole.trim(),
+      location: formData.location.trim(),
       program: chosenProgram,
       rating: Number(formData.rating),
       review_text: formData.reviewText.trim(),
@@ -137,6 +140,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
       setFormData({
         fullName: '',
         collegeOrRole: '',
+        location: '',
         program: 'LFHP',
         customProgram: '',
         rating: 5,
@@ -192,7 +196,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* 1. Full Name */}
             <div>
@@ -224,7 +228,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 3rd Year B.Tech IT / St. Joseph's"
+                placeholder="e.g. 3rd Year IT / St. Joseph's"
                 value={formData.collegeOrRole}
                 onChange={(e) => setFormData({ ...formData, collegeOrRole: e.target.value })}
                 className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
@@ -237,9 +241,31 @@ export default function ReviewForm({ onReviewSubmitted }) {
                 </p>
               )}
             </div>
+
+            {/* 3. Location / City */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                Location / City <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Chennai / Coimbatore"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className={`w-full px-4 py-3 rounded-xl bg-slate-950/90 border ${
+                  errors.location ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-emerald-500'
+                } text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 transition-all`}
+              />
+              {errors.location && (
+                <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.location}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* 3. Program Taken (Dropdown + Custom input if 'Other') */}
+          {/* 4. Program Taken (Dropdown + Custom input if 'Other') */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -251,7 +277,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
                 onChange={(e) => setFormData({ ...formData, program: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl bg-slate-950/90 border border-slate-800 focus:border-blue-500 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer"
               >
-                <option value="LFHP">LFHP (Linux & Forensics Hands-on Program)</option>
+                <option value="LFHP">LFHP (Learn the Fundamentals of Hacking Program)</option>
                 <option value="EHF">EHF (Ethical Hacking Fundamentals)</option>
                 <option value="2-Day Live Workshop">2-Day Live Workshop</option>
                 <option value="Other">Other (Type Manually)</option>
@@ -281,12 +307,14 @@ export default function ReviewForm({ onReviewSubmitted }) {
             ) : (
               <div className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/80 text-xs text-slate-400 flex flex-col justify-center h-full">
                 <span className="font-semibold text-slate-300">Selected Program:</span>
-                <span className="text-blue-400 font-mono text-sm mt-0.5">{formData.program}</span>
+                <span className="text-blue-400 font-mono text-sm mt-0.5">
+                  {formData.program === 'LFHP' ? 'LFHP - Learn the Fundamentals of Hacking Program' : formData.program}
+                </span>
               </div>
             )}
           </div>
 
-          {/* 4. Interactive Star Rating (1 to 5 Stars) */}
+          {/* 5. Interactive Star Rating (1 to 5 Stars) */}
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/60 border border-slate-800/80">
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Star Rating <span className="text-red-400">*</span>
@@ -326,7 +354,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
             )}
           </div>
 
-          {/* 5. Your Real Story / Review */}
+          {/* 6. Your Real Story / Review */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
@@ -352,7 +380,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
             )}
           </div>
 
-          {/* 6 & 7. GitHub and Portfolio / LinkedIn (Optional) */}
+          {/* 7 & 8. GitHub and Portfolio / LinkedIn (Optional) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -393,7 +421,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
             </div>
           </div>
 
-          {/* 8. Submit Button */}
+          {/* 9. Submit Button */}
           <div className="pt-2">
             <button
               type="submit"
