@@ -33,7 +33,7 @@ export default function HeroSection({ totalStories, averageRating, onShareClick 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={onShareClick}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_25px_rgba(59,130,246,0.35)] border border-blue-400/40 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_25px_rgba(59,130,246,0.35)] border border-blue-400/40 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Share Your Story</span>
             <ArrowDown className="w-4 h-4 animate-bounce" />
@@ -50,7 +50,7 @@ export default function HeroSection({ totalStories, averageRating, onShareClick 
           </a>
         </div>
 
-        {/* Dynamic Stats Bar (Auto-Calculated from Active Reviews) */}
+        {/* Dynamic Stats Bar (Auto-Calculated from Genuine Reviews) */}
         <div className="mt-12 sm:mt-16 max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 p-4 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800/90 backdrop-blur-xl shadow-2xl">
           {/* Stat 1: Total Verified Stories */}
           <div className="flex flex-col items-center justify-center p-3 border-r border-slate-800/60 last:border-r-0">
@@ -71,9 +71,17 @@ export default function HeroSection({ totalStories, averageRating, onShareClick 
               <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Avg Rating</span>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono flex items-center gap-1">
-              {averageRating} <span className="text-amber-400 text-lg">★</span>
+              {totalStories > 0 ? (
+                <>
+                  {averageRating} <span className="text-amber-400 text-lg">★</span>
+                </>
+              ) : (
+                <span className="text-slate-400 text-xl font-normal">—</span>
+              )}
             </div>
-            <span className="text-[11px] text-slate-400">Out of 5.0 Scale</span>
+            <span className="text-[11px] text-slate-400">
+              {totalStories > 0 ? 'Out of 5.0 Scale' : 'Awaiting 1st Review'}
+            </span>
           </div>
 
           {/* Stat 3: Practical Lab Growth */}

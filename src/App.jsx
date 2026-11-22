@@ -18,7 +18,7 @@ export default function App() {
 
   const storiesWallRef = useRef(null);
 
-  // 1. Initial Data Fetch (Supabase or Local Persistence)
+  // 1. Initial Data Fetch (Supabase or Local Genuine Reviews)
   useEffect(() => {
     async function loadReviews() {
       try {
@@ -29,12 +29,11 @@ export default function App() {
             .order('created_at', { ascending: false });
 
           if (error) {
-            console.warn('Supabase fetch error, using local/seed reviews:', error);
+            console.warn('Supabase fetch error, using local storage:', error.message);
             setStories(getLocalReviews());
-          } else if (data && data.length > 0) {
+          } else if (data) {
             setStories(data);
           } else {
-            // If table exists but empty, provide rich seed reviews
             setStories(getLocalReviews());
           }
         } else {
@@ -64,7 +63,7 @@ export default function App() {
           const newRow = payload.new;
           if (newRow) {
             setStories((prev) => {
-              // Avoid duplicates if already added optimistically
+              // Deduplicate if already added via client UUID
               if (prev.some((s) => s.id === newRow.id)) {
                 return prev;
               }
@@ -82,18 +81,22 @@ export default function App() {
 
   // 3. Handle Review Submission with Instant Zero-Delay Display
   const handleReviewSubmitted = async (newStory) => {
-    // A. Instant Optimistic UI Update (Immediate visual feedback)
-    setStories((prev) => [newStory, ...prev]);
+    // A. Instant Optimistic UI Update (Immediate visual feedback with zero delay)
+    setStories((prev) => {
+      if (prev.some((s) => s.id === newStory.id)) return prev;
+      return [newStory, ...prev];
+    });
     setNewlyAddedId(newStory.id);
 
     // Save to local storage for persistent zero-setup offline fallback
     saveLocalReview(newStory);
 
-    // B. Insert into Supabase if configured
+    // B. Insert into Supabase if configured (persisting same UUID)
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.from('student_reviews').insert([
+        const { error } = await supabase.from('student_reviews').insert([
           {
+            id: newStory.id,
             full_name: newStory.full_name,
             college_or_role: newStory.college_or_role,
             program: newStory.program,
@@ -103,16 +106,10 @@ export default function App() {
             portfolio_url: newStory.portfolio_url,
             is_verified: true,
           },
-        ]).select();
+        ]);
 
         if (error) {
           console.error('Supabase insert failed:', error.message);
-        } else if (data && data[0]) {
-          // Update the temporary ID with the real Supabase ID
-          setStories((prev) =>
-            prev.map((s) => (s.id === newStory.id ? data[0] : s))
-          );
-          setNewlyAddedId(data[0].id);
         }
       } catch (err) {
         console.error('Supabase connection error:', err);
@@ -142,7 +139,7 @@ export default function App() {
     if (total === 0) {
       return {
         totalStories: 0,
-        averageRating: '5.0',
+        averageRating: '0.0',
         counts: { all: 0, LFHP: 0, EHF: 0, '2-Day Live Workshop': 0, other: 0 },
       };
     }
@@ -208,6 +205,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const hasActiveFilters = activeFilter !== 'all' || searchQuery.trim().length > 0;
+
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
       {/* 1. Header Navigation */}
@@ -237,6 +236,8 @@ export default function App() {
         <StoriesWall
           stories={filteredStories}
           newlyAddedId={newlyAddedId}
+          onShareClick={scrollToForm}
+          hasActiveFilters={hasActiveFilters}
         />
 
         {/* 5. "Share Your Experience" Form */}

@@ -10,6 +10,28 @@ function GithubIcon({ className = "w-3.5 h-3.5" }) {
   );
 }
 
+// Generates a valid UUIDv4 for PostgreSQL & React reconciliation
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+// Normalize URL to always include protocol
+const normalizeUrl = (urlStr) => {
+  if (!urlStr || !urlStr.trim()) return null;
+  const trimmed = urlStr.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+};
+
 export default function ReviewForm({ onReviewSubmitted }) {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -27,7 +49,6 @@ export default function ReviewForm({ onReviewSubmitted }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
 
-  // Rating labels for helpful feedback
   const ratingLabels = {
     1: '1 Star - Needs Improvement',
     2: '2 Stars - Fair Experience',
@@ -62,13 +83,13 @@ export default function ReviewForm({ onReviewSubmitted }) {
       errs.reviewText = 'Please share at least 15 characters describing what you learned or achieved';
     }
 
-    // Optional URL checks
+    // Optional URL validation
     const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
     if (formData.githubUrl.trim() && !urlPattern.test(formData.githubUrl.trim())) {
-      errs.githubUrl = 'Please enter a valid GitHub URL (e.g. https://github.com/username)';
+      errs.githubUrl = 'Please enter a valid GitHub URL (e.g. github.com/username)';
     }
     if (formData.portfolioUrl.trim() && !urlPattern.test(formData.portfolioUrl.trim())) {
-      errs.portfolioUrl = 'Please enter a valid URL (e.g. https://linkedin.com/in/username)';
+      errs.portfolioUrl = 'Please enter a valid URL (e.g. linkedin.com/in/username)';
     }
 
     setErrors(errs);
@@ -85,24 +106,24 @@ export default function ReviewForm({ onReviewSubmitted }) {
       ? formData.customProgram.trim() 
       : formData.program;
 
+    // Use a clean UUID so optimistic state and Supabase row match perfectly
     const newStory = {
-      id: 'rev-' + Date.now(),
+      id: generateUUID(),
       full_name: formData.fullName.trim(),
       college_or_role: formData.collegeOrRole.trim(),
       program: chosenProgram,
       rating: Number(formData.rating),
       review_text: formData.reviewText.trim(),
-      github_url: formData.githubUrl.trim() || null,
-      portfolio_url: formData.portfolioUrl.trim() || null,
+      github_url: normalizeUrl(formData.githubUrl),
+      portfolio_url: normalizeUrl(formData.portfolioUrl),
       is_verified: true,
       created_at: new Date().toISOString(),
     };
 
     try {
-      // Trigger instant optimistic display & database insert via parent handler
       await onReviewSubmitted(newStory);
 
-      // Trigger celebration confetti
+      // Celebration confetti
       try {
         confetti({
           particleCount: 100,
@@ -110,9 +131,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
           origin: { y: 0.6 },
           colors: ['#3B82F6', '#10B981', '#06B6D4', '#F59E0B']
         });
-      } catch (err) {
-        // silent catch if confetti canvas is unavailable
-      }
+      } catch (_) {}
 
       // Reset form
       setFormData({
@@ -379,7 +398,7 @@ export default function ReviewForm({ onReviewSubmitted }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 px-6 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 shadow-[0_0_30px_rgba(59,130,246,0.35)] border border-blue-400/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 shadow-[0_0_30px_rgba(59,130,246,0.35)] border border-blue-400/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
