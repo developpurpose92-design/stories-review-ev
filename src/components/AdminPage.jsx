@@ -25,7 +25,7 @@ export default function AdminPage({ stories, onDeleteReview, onNavigateHome }) {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (pin.trim() === 'evcyberadmin' || pin.trim() === 'admin123') {
+    if (pin.trim() === 'evcyberacademy!@#') {
       setIsAdmin(true);
       try {
         sessionStorage.setItem('ev_is_admin', 'true');
@@ -33,7 +33,7 @@ export default function AdminPage({ stories, onDeleteReview, onNavigateHome }) {
       setPin('');
       setPinError('');
     } else {
-      setPinError('Incorrect Admin Passcode. Try: evcyberadmin');
+      setPinError('Incorrect Admin Passcode. Access denied.');
     }
   };
 
@@ -123,7 +123,7 @@ export default function AdminPage({ stories, onDeleteReview, onNavigateHome }) {
                 <div>
                   <input
                     type="password"
-                    placeholder="Enter Passcode (default: evcyberadmin)"
+                    placeholder="Enter Admin Passcode"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-blue-500 text-white text-center font-mono text-sm outline-none tracking-widest focus:ring-1 focus:ring-blue-500"
